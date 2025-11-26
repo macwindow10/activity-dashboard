@@ -111,14 +111,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8 flex flex-col items-center justify-center">
-      <div className="w-full max-w-[1800px] space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8 flex flex-col items-center pt-2 md:pt-4">
+      <div className="w-full max-w-[1800px] space-y-4">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Activity Dashboard</h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-1">Activity Dashboard</h1>
           <p className="text-slate-600">Manage and track all your activities in one place</p>
         </div>
 
-        <Tabs defaultValue="dashboard" className="space-y-4 w-full">
+        <Tabs defaultValue="dashboard" className="space-y-2 w-full">
           <div className="flex justify-center">
             <TabsList className="grid grid-cols-2">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -126,7 +126,7 @@ export default function Dashboard() {
             </TabsList>
           </div>
 
-          <TabsContent value="dashboard" className="space-y-6 w-full">
+          <TabsContent value="dashboard" className="space-y-3 w-full">
             <ActivityFilters projects={projects} users={users} onFilter={handleFilter} />
             {isLoading ? (
               <div className="text-center py-8">
