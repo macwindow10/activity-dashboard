@@ -12,9 +12,9 @@ export async function POST(
     const resolvedJson = await request.json()
     // console.log('resolvedJson: ', resolvedJson);
     const { status, remarks, changedById } = resolvedJson
-    // console.log('status: ', status);
-    // console.log('remarks: ', remarks);
-    // console.log('changedById: ', changedById);
+    console.log('status: ', status);
+    console.log('remarks: ', remarks);
+    console.log('changedById: ', changedById);
     if (!status || !changedById) {
       return NextResponse.json(
         { error: "Status and changedById are required" },

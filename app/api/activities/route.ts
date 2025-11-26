@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         createdBy: { select: { id: true, name: true, email: true } },
         projects: { include: { project: { select: { id: true, name: true } } } },
         assignedPersons: { include: { user: { select: { id: true, name: true, email: true } } } },
+        statusHistory: { include: { changedBy: { select: { id: true, name: true, email: true } } } },
       },
       orderBy: { dueDate: "asc" },
     })
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
         createdBy: { select: { id: true, name: true, email: true } },
         projects: { include: { project: { select: { id: true, name: true } } } },
         assignedPersons: { include: { user: { select: { id: true, name: true, email: true } } } },
+        statusHistory: { include: { changedBy: { select: { id: true, name: true, email: true } } } },
       },
     })
 
@@ -186,6 +188,7 @@ export async function PUT(request: NextRequest) {
           createdBy: { select: { id: true, name: true, email: true } },
           projects: { include: { project: { select: { id: true, name: true } } } },
           assignedPersons: { include: { user: { select: { id: true, name: true, email: true } } } },
+          statusHistory: { include: { changedBy: { select: { id: true, name: true, email: true } } } },
         },
       })
     })

@@ -37,6 +37,7 @@ export default function Dashboard() {
         ])
 
         const activitiesData = await activitiesRes.json()
+        console.log("Fetched activities data:", activitiesData);
         const projectsData = await projectsRes.json()
         const usersData = await usersRes.json()
 
