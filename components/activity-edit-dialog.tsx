@@ -6,39 +6,51 @@ import { Button } from "@/components/ui/button"
 import { Pencil } from "lucide-react"
 import type { IActivity } from "@/lib/types"
 import { ActivityEditForm } from "./activity-edit-form"
+import { ReactNode } from "react"
 
 interface ActivityEditDialogProps {
   activity: IActivity
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSuccess: () => void
+  children?: ReactNode
+  className?: string
 }
 
-export function ActivityEditDialog({ activity, onSuccess }: ActivityEditDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
-
+export function ActivityEditDialog({ 
+  activity, 
+  open,
+  onOpenChange, 
+  onSuccess, 
+  children, 
+  className = "" 
+}: ActivityEditDialogProps) {
   const handleSuccess = () => {
-    setIsOpen(false)
+    onOpenChange(false)
     onSuccess()
   }
 
+  // Transform the activity data to match the expected format for ActivityEditForm
+  const formattedActivity = {
+    ...activity,
+    projects: activity.projects.map(p => ({
+      projectId: p.project.id,
+      project: p.project
+    })),
+    assignedPersons: activity.assignedPersons.map(ap => ({
+      userId: ap.user.id,
+      user: ap.user
+    }))
+  }
+
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => setIsOpen(true)}
-        aria-label="Edit activity"
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Activity</DialogTitle>
-          </DialogHeader>
-          <ActivityEditForm activity={activity} onSuccess={handleSuccess} />
-        </DialogContent>
-      </Dialog>
-    </>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Edit Activity</DialogTitle>
+        </DialogHeader>
+        <ActivityEditForm activity={formattedActivity} onSuccess={handleSuccess} />
+      </DialogContent>
+    </Dialog>
   )
 }

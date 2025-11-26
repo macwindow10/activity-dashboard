@@ -8,11 +8,17 @@ export async function GET(
   const { id } = params
   try {
     const activity = await prisma.activity.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         createdBy: { select: { id: true, name: true, email: true } },
         projects: { include: { project: { select: { id: true, name: true } } } },
         assignedPersons: { include: { user: { select: { id: true, name: true, email: true } } } },
+        statusHistory: {
+          include: {
+            changedBy: { select: { id: true, name: true, email: true } },
+          },
+          orderBy: { changedAt: 'desc' },
+        },
       },
     })
 
@@ -32,6 +38,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {          
+    console.log('PUT status');
     const resolvedParams = await params;
     const id = resolvedParams.id    
     const body = await request.json()    

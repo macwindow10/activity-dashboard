@@ -4,13 +4,40 @@ export type ActivityStatus = "Created" | "InProgress" | "Completed"
 export interface IActivity {
   id: string
   description: string
-  type: ActivityType
-  status: ActivityStatus
-  dueDate: Date
-  completionDate?: Date | null
-  createdBy: { id: string; name?: string; email: string }
-  projects: { project: { id: string; name: string } }[]
-  assignedPersons: { user: { id: string; name?: string; email: string } }[]
-  createdAt: Date
-  updatedAt: Date
+  type: string
+  status: string
+  dueDate: string | Date
+  completionDate: string | Date | null
+  createdById: string
+  createdAt: string | Date
+  updatedAt: string | Date
+  createdBy: {
+    id: string
+    name: string | null
+    email: string
+  }
+  projects: Array<{
+    project: {
+      id: string
+      name: string
+    }
+  }>
+  assignedPersons: Array<{
+    user: {
+      id: string
+      name: string | null
+      email: string
+    }
+  }>
+  statusHistory?: Array<{
+    id: string
+    status: string
+    remarks: string | null
+    changedAt: Date
+    changedBy: {
+      id: string
+      name: string | null
+      email: string
+    }
+  }>
 }

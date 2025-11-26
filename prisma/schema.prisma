@@ -11,16 +11,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String                 @id @default(cuid())
+  email               String                 @unique
+  name                String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
 
-  activities       Activity[]
-  projectsOwned    Project[]
-  projectsAssigned ProjectAssignee[]
-  activityPersons  ActivityPerson[]
+  activities          Activity[]
+  projectsOwned       Project[]
+  projectsAssigned    ProjectAssignee[]
+  activityPersons     ActivityPerson[]
+  activityStatusChanges ActivityStatusHistory[]
 }
 
 model Project {
@@ -52,23 +53,40 @@ model ProjectAssignee {
 }
 
 model Activity {
-  id             String    @id @default(cuid())
-  description    String
-  type           String // ProjectTask, RoutineWork, AttendMeeting, etc.
-  status         String    @default("Created") // Created, InProgress, Completed
-  dueDate        DateTime
-  completionDate DateTime?
-  createdById    String
-  createdBy      User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                String                 @id @default(cuid())
+  description       String
+  type              String // ProjectTask, RoutineWork, AttendMeeting, etc.
+  status            String                 @default("Created") // Current status (denormalized for quick access)
+  dueDate           DateTime
+  completionDate    DateTime?
+  createdById       String
+  createdBy         User                   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
 
-  projects        ActivityProject[]
-  assignedPersons ActivityPerson[]
+  projects          ActivityProject[]
+  assignedPersons   ActivityPerson[]
+  statusHistory     ActivityStatusHistory[]
 
   @@index([createdById])
   @@index([dueDate])
   @@index([status])
+}
+
+model ActivityStatusHistory {
+  id          String    @id @default(cuid())
+  activityId  String
+  status      String    // The status at this point in time
+  remarks     String?   // Optional remarks about the status change
+  changedById String    // Who made the change
+  changedBy   User      @relation(fields: [changedById], references: [id], onDelete: NoAction)
+  changedAt   DateTime  @default(now()) // When the change was made
+  activity    Activity  @relation(fields: [activityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([activityId])
+  @@index([changedById])
+  @@index([status])
+  @@index([changedAt])
 }
 
 model ActivityProject {

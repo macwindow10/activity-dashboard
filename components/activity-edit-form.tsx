@@ -1,25 +1,17 @@
+// components/activity-edit-form.tsx
 "use client"
 
-import { CommandEmpty } from "@/components/ui/command"
-
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import type { IActivity } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Command, CommandList, CommandInput, CommandGroup, CommandItem } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Badge } from "@/components/ui/badge"
-import { X } from "lucide-react"
 import { toast } from "sonner"
-
-const ACTIVITY_TYPES = ["ProjectTask", "RoutineWork", "AttendMeeting", "Other"]
-const ACTIVITY_STATUSES = ["Created", "InProgress", "Completed"]
+import { Loader2 } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandInput, CommandItem, CommandList, CommandGroup } from "@/components/ui/command"
+import { Badge } from "@/components/ui/badge"
+import { Check, X } from "lucide-react"
 
 interface Project {
   id: string
@@ -28,260 +20,269 @@ interface Project {
 
 interface User {
   id: string
-  name?: string
+  name: string | null
   email: string
 }
 
-export function ActivityEditForm({ activity, onSuccess }: { activity: IActivity; onSuccess: () => void }) {
+interface ActivityEditFormProps {
+  activity: {
+    id: string
+    description: string
+    projects: { projectId: string; project: { id: string; name: string } }[]
+    assignedPersons: { userId: string; user: { id: string; name: string | null; email: string } }[]
+    dueDate: string
+    completionDate: string | null
+  }
+  onSuccess: () => void
+}
+
+export function ActivityEditForm({ activity, onSuccess }: ActivityEditFormProps) {
   const [projects, setProjects] = useState<Project[]>([])
   const [users, setUsers] = useState<User[]>([])
-  const [selectedProjects, setSelectedProjects] = useState<string[]>([])
-  const [selectedPersons, setSelectedPersons] = useState<string[]>([])
+  const [selectedProjects, setSelectedProjects] = useState<string[]>(activity.projects?.map(p => p.projectId) || [])
+  const [selectedPersons, setSelectedPersons] = useState<string[]>(activity.assignedPersons?.map(p => p.userId) || [])
   const [isLoading, setIsLoading] = useState(false)
-
+  
   const [formData, setFormData] = useState({
     description: activity.description,
-    type: activity.type,
-    status: activity.status,
-    dueDate: new Date(activity.dueDate).toISOString().slice(0, 16),
+    dueDate: activity.dueDate ? new Date(activity.dueDate).toISOString().slice(0, 16) : "",
     completionDate: activity.completionDate ? new Date(activity.completionDate).toISOString().slice(0, 16) : "",
   })
 
+  // Fetch projects and users
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [projectsRes, usersRes] = await Promise.all([fetch("/api/projects"), fetch("/api/users")])
-        const projectsData = await projectsRes.json()
-        const usersData = await usersRes.json()
-        setProjects(projectsData)
-        setUsers(usersData)
-
-        setSelectedProjects(activity.projects.map((ap) => ap.project.id))
-        setSelectedPersons(activity.assignedPersons.map((ap) => ap.user.id))
+        // Replace with your actual API endpoints
+        const [projectsRes, usersRes] = await Promise.all([
+          fetch('/api/projects'),
+          fetch('/api/users')
+        ])
+        
+        if (projectsRes.ok) setProjects(await projectsRes.json())
+        if (usersRes.ok) setUsers(await usersRes.json())
       } catch (error) {
-        console.error("Error fetching data:", error)
-        toast.error("Failed to load projects and users")
+        console.error('Error fetching data:', error)
       }
     }
+
     fetchData()
-  }, [activity])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+    
     try {
-      console.log('activity.id: ', activity.id);
       const response = await fetch(`/api/activities/${activity.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           ...formData,
           projectIds: selectedProjects,
-          personIds: selectedPersons,
+          assignedUserIds: selectedPersons,
         }),
       })
 
-      if (!response.ok) throw new Error("Failed to update activity")
-
-      toast.success("Activity updated successfully")
+      if (!response.ok) throw new Error('Failed to update activity')
+      
+      toast.success('Activity updated successfully')
       onSuccess()
     } catch (error) {
-      console.error("Error updating activity:", error)
-      toast.error("Failed to update activity")
+      console.error('Error updating activity:', error)
+      toast.error('Failed to update activity')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Edit Activity</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Enter activity description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-              className="resize-none"
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Enter activity description"
+          required
+          className="min-h-[100px]"
+        />
+      </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="type">Activity Type</Label>
-              <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                <SelectTrigger id="type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ACTIVITY_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ACTIVITY_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="dueDate">Due Date</Label>
-              <Input
-                id="dueDate"
-                type="datetime-local"
-                value={formData.dueDate}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="completionDate">Completion Date</Label>
-              <Input
-                id="completionDate"
-                type="datetime-local"
-                value={formData.completionDate}
-                onChange={(e) => setFormData({ ...formData, completionDate: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Projects</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left bg-transparent">
-                  {selectedProjects.length > 0 ? `${selectedProjects.length} selected` : "Select projects..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search projects..." />
-                  <CommandList>
-                    <CommandEmpty>No project found.</CommandEmpty>
-                    <CommandGroup>
-                      {projects.map((project) => (
-                        <CommandItem
-                          key={project.id}
-                          value={project.id}
-                          onSelect={() => {
-                            setSelectedProjects((prev) =>
-                              prev.includes(project.id) ? prev.filter((p) => p !== project.id) : [...prev, project.id],
-                            )
-                          }}
-                        >
-                          <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
-                            {selectedProjects.includes(project.id) && <div className="h-2 w-2 bg-primary" />}
-                          </div>
-                          {project.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedProjects.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedProjects.map((projectId) => {
-                  const project = projects.find((p) => p.id === projectId)
-                  return (
-                    <Badge key={projectId} variant="secondary" className="flex items-center gap-1">
-                      {project?.name}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => setSelectedProjects((prev) => prev.filter((p) => p !== projectId))}
-                      />
-                    </Badge>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Assign to Persons</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left bg-transparent">
-                  {selectedPersons.length > 0 ? `${selectedPersons.length} selected` : "Select persons..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search persons..." />
-                  <CommandList>
-                    <CommandEmpty>No person found.</CommandEmpty>
-                    <CommandGroup>
-                      {users.map((user) => (
-                        <CommandItem
-                          key={user.id}
-                          value={user.id}
-                          onSelect={() => {
-                            setSelectedPersons((prev) =>
-                              prev.includes(user.id) ? prev.filter((p) => p !== user.id) : [...prev, user.id],
-                            )
-                          }}
-                        >
-                          <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
-                            {selectedPersons.includes(user.id) && <div className="h-2 w-2 bg-primary" />}
-                          </div>
-                          {user.name || user.email}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedPersons.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedPersons.map((userId) => {
-                  const user = users.find((u) => u.id === userId)
-                  return (
-                    <Badge key={userId} variant="secondary" className="flex items-center gap-1">
-                      {user?.name || user?.email}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => setSelectedPersons((prev) => prev.filter((p) => p !== userId))}
-                      />
-                    </Badge>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? "Updating..." : "Update Activity"}
+      <div className="space-y-2">
+        <Label>Projects</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full justify-start" type="button">
+              {selectedProjects.length > 0 
+                ? `${selectedProjects.length} selected` 
+                : "Select projects..."}
             </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search projects..." />
+              <CommandList>
+                <CommandGroup>
+                  {projects.map((project) => (
+                    <CommandItem
+                      key={project.id}
+                      onSelect={() => {
+                        setSelectedProjects(prev =>
+                          prev.includes(project.id)
+                            ? prev.filter(id => id !== project.id)
+                            : [...prev, project.id]
+                        )
+                      }}
+                    >
+                      <div
+                        className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border 
+                          ${selectedProjects.includes(project.id) 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'opacity-50'}`}
+                      >
+                        {selectedProjects.includes(project.id) && (
+                          <Check className="h-3 w-3" />
+                        )}
+                      </div>
+                      {project.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {selectedProjects.map(projectId => {
+            const project = projects.find(p => p.id === projectId)
+            return project ? (
+              <Badge key={projectId} variant="secondary" className="flex items-center gap-1">
+                {project.name}
+                <button
+                  type="button"
+                  onClick={() => 
+                    setSelectedProjects(prev => prev.filter(id => id !== projectId))
+                  }
+                  className="ml-1"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ) : null
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Assigned Persons</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full justify-start" type="button">
+              {selectedPersons.length > 0 
+                ? `${selectedPersons.length} selected` 
+                : "Select persons..."}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search persons..." />
+              <CommandList>
+                <CommandGroup>
+                  {users.map((user) => (
+                    <CommandItem
+                      key={user.id}
+                      onSelect={() => {
+                        setSelectedPersons(prev =>
+                          prev.includes(user.id)
+                            ? prev.filter(id => id !== user.id)
+                            : [...prev, user.id]
+                        )
+                      }}
+                    >
+                      <div
+                        className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border 
+                          ${selectedPersons.includes(user.id) 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'opacity-50'}`}
+                      >
+                        {selectedPersons.includes(user.id) && (
+                          <Check className="h-3 w-3" />
+                        )}
+                      </div>
+                      {user.name || user.email}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {selectedPersons.map(userId => {
+            const user = users.find(u => u.id === userId)
+            return user ? (
+              <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                {user.name || user.email}
+                <button
+                  type="button"
+                  onClick={() => 
+                    setSelectedPersons(prev => prev.filter(id => id !== userId))
+                  }
+                  className="ml-1"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ) : null
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="dueDate">Due Date</Label>
+          <Input
+            id="dueDate"
+            type="datetime-local"
+            value={formData.dueDate}
+            onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="completionDate">Completion Date (Optional)</Label>
+          <Input
+            id="completionDate"
+            type="datetime-local"
+            value={formData.completionDate}
+            onChange={(e) => setFormData(prev => ({ ...prev, completionDate: e.target.value }))}
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onSuccess}
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
+        </Button>
+      </div>
+    </form>
   )
 }
