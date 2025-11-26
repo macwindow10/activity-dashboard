@@ -88,7 +88,7 @@ export function ActivityFilters({
   }, [])
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="border-0 shadow-sm w-full md:w-[640px] max-w-[640px] mx-auto">
       <CardContent className="p-4">
         <div className="space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">

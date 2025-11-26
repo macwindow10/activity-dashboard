@@ -111,20 +111,22 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8 flex flex-col items-center justify-center">
+      <div className="w-full max-w-[1800px] space-y-8">
+        <div className="text-center">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">Activity Dashboard</h1>
           <p className="text-slate-600">Manage and track all your activities in one place</p>
         </div>
 
-        <Tabs defaultValue="dashboard" className="space-y-4">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+        <Tabs defaultValue="dashboard" className="space-y-4 w-full">
+          <div className="flex justify-center">
+            <TabsList className="grid grid-cols-2">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="create">Create Activity</TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </div>
 
-          <TabsContent value="dashboard" className="space-y-6">
+          <TabsContent value="dashboard" className="space-y-6 w-full">
             <ActivityFilters projects={projects} users={users} onFilter={handleFilter} />
             {isLoading ? (
               <div className="text-center py-8">
@@ -135,7 +137,7 @@ export default function Dashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="create">
+          <TabsContent value="create" className="w-full">
             <div className="space-y-6">
               <ActivityForm onSuccess={handleActivityCreated} />
               <ActivityList activities={filteredActivities} onSuccess={handleActivityUpdated} />
