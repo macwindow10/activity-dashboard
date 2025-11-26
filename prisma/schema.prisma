@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activities       Activity[]
+  projectsOwned    Project[]
+  projectsAssigned ProjectAssignee[]
+  activityPersons  ActivityPerson[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  activities ActivityProject[]
+  assignees  ProjectAssignee[]
+
+  @@index([ownerId])
+}
+
+model ProjectAssignee {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+}
+
+model Activity {
+  id             String    @id @default(cuid())
+  description    String
+  type           String // ProjectTask, RoutineWork, AttendMeeting, etc.
+  status         String    @default("Created") // Created, InProgress, Completed
+  dueDate        DateTime
+  completionDate DateTime?
+  createdById    String
+  createdBy      User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  projects        ActivityProject[]
+  assignedPersons ActivityPerson[]
+
+  @@index([createdById])
+  @@index([dueDate])
+  @@index([status])
+}
+
+model ActivityProject {
+  id         String   @id @default(cuid())
+  activityId String
+  projectId  String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([activityId, projectId])
+  @@index([activityId])
+  @@index([projectId])
+}
+
+model ActivityPerson {
+  id         String   @id @default(cuid())
+  activityId String
+  userId     String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       User     @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  @@unique([activityId, userId])
+  @@index([activityId])
+  @@index([userId])
+}
