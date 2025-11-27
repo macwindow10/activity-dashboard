@@ -11,7 +11,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Activity Dashboard",
   description: "Manage and track all your activities in one place",
-  generator: "v0.app",
+  generator: "Nextjs",
   icons: {
     icon: [
       {

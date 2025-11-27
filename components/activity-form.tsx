@@ -31,7 +31,12 @@ interface User {
   email: string
 }
 
-export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
+interface ActivityFormProps {
+  onSuccess: () => void
+  compact?: boolean
+}
+
+export function ActivityForm({ onSuccess, compact = false }: ActivityFormProps) {
   const [projects, setProjects] = useState<Project[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [selectedProjects, setSelectedProjects] = useState<string[]>([])
@@ -104,8 +109,8 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
         <CardDescription>Add a new activity to your dashboard</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className={compact ? "space-y-3" : "space-y-6"}>
+          <div className={compact ? "space-y-1" : "space-y-2"}>
             <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
@@ -113,15 +118,15 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               required
-              className="resize-none"
+              className={compact ? "resize-none h-16" : "resize-none"}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className={`grid grid-cols-2 ${compact ? 'gap-2' : 'gap-4'}`}>
+            <div className={compact ? 'space-y-1' : 'space-y-2'}>
               <Label htmlFor="type">Activity Type</Label>
               <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                <SelectTrigger id="type">
+                <SelectTrigger id="type" className={compact ? 'h-8' : ''}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,10 +139,10 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className={compact ? 'space-y-1' : 'space-y-2'}>
               <Label htmlFor="status">Status</Label>
               <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" className={compact ? 'h-8' : ''}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,7 +156,7 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className={compact ? 'space-y-1' : 'space-y-2'}>
             <Label htmlFor="dueDate">Due Date</Label>
             <Input
               id="dueDate"
@@ -159,14 +164,15 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
               value={formData.dueDate}
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
               required
+              className={compact ? 'h-8' : ''}
             />
           </div>
 
-          <div className="space-y-2">
+          <div className={compact ? 'space-y-1' : 'space-y-2'}>
             <Label>Projects</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left bg-transparent">
+                <Button variant="outline" className={`w-full justify-start text-left bg-transparent ${compact ? 'py-1' : ''}`}>
                   {selectedProjects.length > 0 ? `${selectedProjects.length} selected` : "Select projects..."}
                 </Button>
               </PopoverTrigger>
@@ -215,11 +221,11 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className={compact ? 'space-y-1' : 'space-y-2'}>
             <Label>Assign to Persons</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left bg-transparent">
+                <Button variant="outline" className={`w-full justify-start text-left bg-transparent ${compact ? 'py-1' : ''}`}>
                   {selectedPersons.length > 0 ? `${selectedPersons.length} selected` : "Select persons..."}
                 </Button>
               </PopoverTrigger>
@@ -268,7 +274,7 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
             )}
           </div>
 
-          <Button type="submit" disabled={isLoading} className="w-full">
+          <Button type="submit" disabled={isLoading} className={`w-full ${compact ? 'py-1' : ''}`}>
             {isLoading ? "Creating..." : "Create Activity"}
           </Button>
         </form>

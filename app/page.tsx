@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ActivityForm } from "@/components/activity-form"
 import { ActivityFilters } from "@/components/activity-filters"
 import { ActivityList } from "@/components/activity-list"
+import { Dashboard } from "@/components/dashboard"
 import type { IActivity } from "@/lib/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
@@ -19,7 +20,7 @@ interface User {
   email: string
 }
 
-export default function Dashboard() {
+export default function MainPage() {
   const [activities, setActivities] = useState<IActivity[]>([])
   const [filteredActivities, setFilteredActivities] = useState<IActivity[]>([])
   const [projects, setProjects] = useState<Project[]>([])
@@ -114,19 +115,23 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8 flex flex-col items-center pt-2 md:pt-4">
       <div className="w-full max-w-[1800px] space-y-4">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-slate-900 mb-1">Activity Dashboard</h1>
-          <p className="text-slate-600">Manage and track all your activities in one place</p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-1">Activity Dashboard</h1>          
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-2 w-full">
           <div className="flex justify-center">
-            <TabsList className="grid grid-cols-2">
+            <TabsList className="grid grid-cols-3">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="activities">Activities</TabsTrigger>
             <TabsTrigger value="create">Create Activity</TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="dashboard" className="space-y-3 w-full">
+            <Dashboard activities={activities} projects={projects} users={users} />
+          </TabsContent>
+
+          <TabsContent value="activities" className="space-y-3 w-full">
             <ActivityFilters projects={projects} users={users} onFilter={handleFilter} />
             {isLoading ? (
               <div className="text-center py-8">
@@ -138,10 +143,9 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="create" className="w-full">
-            <div className="space-y-6">
-              <ActivityForm onSuccess={handleActivityCreated} />
-              <ActivityList activities={filteredActivities} onSuccess={handleActivityUpdated} />
-            </div>
+              <div className="space-y-6">
+                  <ActivityForm onSuccess={handleActivityCreated} compact />
+              </div>
           </TabsContent>
         </Tabs>
       </div>
