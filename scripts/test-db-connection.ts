@@ -9,9 +9,9 @@ async function testConnection() {
     
     console.log('Connection successful!');
     
-    // Try to list users
-    const users = await prisma.user.findMany();
-    console.log('Users in database:', users);
+    // Try to list users with role USER
+    const users = await prisma.user.findMany({ where: { role: 'USER' } });
+    console.log('Users with role USER in database:', users);
     
   } catch (error) {
     console.error('Error connecting to database:');

@@ -12,9 +12,9 @@ async function testConnection() {
     console.log('Connection successful!');
     
     // Check if the User table exists by trying to count records
-    try {
-      const userCount = await prisma.user.count();
-      console.log(`Found ${userCount} users in the database.`);
+      try {
+      const userCount = await prisma.user.count({ where: { role: 'USER' } });
+      console.log(`Found ${userCount} users with role USER in the database.`);
     } catch (error) {
       console.error('Error accessing User table. The table might not exist yet.');
       console.error('Please run: npx prisma db push');

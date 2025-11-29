@@ -4,7 +4,8 @@ import { type NextRequest, NextResponse } from "next/server"
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true },
+      where: { role: "USER" },
+      select: { id: true, name: true, email: true, role: true },
     })
     return NextResponse.json(users)
   } catch (error) {
@@ -22,10 +23,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, name } = body
+
+    const { email, name, role, hashedPassword } = body
 
     const user = await prisma.user.create({
-      data: { email, name },
+      data: { email, name, role, hashedPassword },
+      select: { id: true, email: true, name: true, role: true },
     })
 
     return NextResponse.json(user, { status: 201 })
