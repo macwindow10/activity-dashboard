@@ -1,13 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { ActivityForm } from "@/components/activity-form"
 import { ActivityFilters } from "@/components/activity-filters"
 import { ActivityList } from "@/components/activity-list"
 import { Dashboard } from "@/components/dashboard"
 import type { IActivity } from "@/lib/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
+import { LogOut } from "lucide-react"
 
 interface Project {
   id: string
@@ -26,6 +30,18 @@ export default function MainPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { logout, session } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success("Logged out successfully")
+      router.refresh()
+    } catch (error) {
+      toast.error("Failed to logout")
+    }
+  }
 
   // Fetch initial data
   useEffect(() => {
@@ -114,8 +130,21 @@ export default function MainPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8 flex flex-col items-center pt-2 md:pt-4">
       <div className="w-full max-w-[1800px] space-y-4">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-slate-900 mb-1">Activity Dashboard</h1>          
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl font-bold text-slate-900 mb-1">Activity Dashboard</h1>
+            {session && (
+              <p className="text-sm text-slate-600">Welcome, {session.name || session.email}</p>
+            )}
+          </div>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="gap-2 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-2 w-full">
