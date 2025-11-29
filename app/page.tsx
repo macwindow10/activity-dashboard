@@ -81,6 +81,7 @@ export default function MainPage() {
     personIds: string[]
     status: string
     type?: string
+    noProject?: boolean
   }) => {
     let filtered = [...activities]
 
@@ -95,7 +96,9 @@ export default function MainPage() {
       filtered = filtered.filter((a) => new Date(a.dueDate) <= toDate)
     }
 
-    if (filters.projectIds.length > 0) {
+    if (filters.noProject) {
+      filtered = filtered.filter((a) => a.projects.length === 0)
+    } else if (filters.projectIds.length > 0) {
       filtered = filtered.filter((a) => a.projects.some((p) => filters.projectIds.includes(p.project.id)))
     }
 

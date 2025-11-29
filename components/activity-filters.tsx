@@ -30,6 +30,7 @@ interface FilterState {
   personIds: string[]
   status: string
   type?: string
+  noProject?: boolean
 }
 
 export function ActivityFilters({
@@ -48,8 +49,8 @@ export function ActivityFilters({
     personIds: [],
     status: "all",
     type: "all",
+    noProject: false,
   })
-  const [noProject, setNoProject] = useState(false)
 
   const handleFilter = () => {
     onFilter(filters)
@@ -63,6 +64,7 @@ export function ActivityFilters({
       personIds: [],
       status: "all",
       type: "all",
+      noProject: false,
     }
     setFilters(emptyFilters)
     onFilter(emptyFilters)
@@ -269,8 +271,8 @@ export function ActivityFilters({
                         <input
                           type="checkbox"
                           id="noProject"
-                          checked={noProject}
-                          onChange={e => setNoProject(e.target.checked)}
+                          checked={filters.noProject || false}
+                          onChange={e => setFilters({ ...filters, noProject: e.target.checked })}
                           className="w-4 h-4"
                         />
                         <Label htmlFor="noProject" className="text-xs font-medium text-muted-foreground cursor-pointer">Activities not linked to any project</Label>
