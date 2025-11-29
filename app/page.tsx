@@ -6,6 +6,7 @@ import { ActivityForm } from "@/components/activity-form"
 import { ActivityFilters } from "@/components/activity-filters"
 import { ActivityList } from "@/components/activity-list"
 import { Dashboard } from "@/components/dashboard"
+import ProjectsPage from "@/components/projects-page"
 import type { IActivity } from "@/lib/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -149,8 +150,9 @@ export default function MainPage() {
 
         <Tabs defaultValue="dashboard" className="space-y-2 w-full">
           <div className="flex justify-center">
-            <TabsList className="grid grid-cols-3">
+            <TabsList className="grid grid-cols-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
             <TabsTrigger value="activities">Activities</TabsTrigger>
             <TabsTrigger value="create">Create Activity</TabsTrigger>
             </TabsList>
@@ -175,6 +177,10 @@ export default function MainPage() {
               <div className="space-y-6">
                   <ActivityForm onSuccess={handleActivityCreated} compact />
               </div>
+          </TabsContent>
+
+          <TabsContent value="projects" className="space-y-3 w-full">
+            <ProjectsPage projects={projects} activities={activities} users={users} />
           </TabsContent>
         </Tabs>
       </div>

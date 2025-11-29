@@ -50,25 +50,25 @@ function getTypeColor(type: string) {
 function ActivityDetails({ activity, onClose }: { activity: IActivity | null; onClose: () => void }) {
   return (
     <div className="w-full md:w-80 bg-white border-l flex flex-col h-full rounded-lg overflow-hidden shadow-lg">
-      <div className="p-4 border-b flex items-center justify-between bg-[var(--primary)] rounded-t-lg">
-        <h3 className="text-lg font-semibold text-[var(--primary-foreground)]">Activity Details</h3>
+      <div className="p-2 border-b relative rounded-t-lg">
+        <h3 className="text-sm font-medium text-foreground text-center w-full">Activity Details</h3>
         {activity && (
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4 text-[var(--primary-foreground)]" />
+          <Button variant="ghost" size="sm" className="absolute right-2 top-1/2 -translate-y-1/2" onClick={onClose}>
+            <X className="h-4 w-4 text-[var(--primary)]" />
           </Button>
         )}
       </div>
       {activity ? (
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 p-3 text-sm">
+            <div className="space-y-4">
               <div>
-                <h4 className="font-medium mb-2">Description</h4>
+                <h4 className="font-medium text-sm mb-1">Description</h4>
                 <p className="text-sm text-muted-foreground">{activity.description}</p>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-medium">Details</h4>
-                <div className="grid gap-2 text-sm">
+                <h4 className="font-medium text-sm">Details</h4>
+                <div className="grid gap-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Type:</span>
                     <Badge className={getTypeColor(activity.type)}>{activity.type}</Badge>
@@ -92,7 +92,7 @@ function ActivityDetails({ activity, onClose }: { activity: IActivity | null; on
 
               {activity.projects.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-2">Projects</h4>
+                  <h4 className="font-medium text-sm mb-1">Projects</h4>
                   <div className="flex flex-wrap gap-1">
                     {activity.projects.map((ap) => (
                       <Badge key={ap.project.id} variant="outline">
@@ -105,11 +105,11 @@ function ActivityDetails({ activity, onClose }: { activity: IActivity | null; on
 
               {activity.assignedPersons.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-2">Assigned To</h4>
+                  <h4 className="font-medium text-sm mb-1">Assigned To</h4>
                   <div className="space-y-2">
                     {activity.assignedPersons.map((ap) => (
                       <div key={ap.user.id} className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs">
+                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">
                           {ap.user.name?.[0] || ap.user.email[0].toUpperCase()}
                         </div>
                         <div>
@@ -123,7 +123,7 @@ function ActivityDetails({ activity, onClose }: { activity: IActivity | null; on
 
               <div>
                 <h4 className="font-medium mb-2">History</h4>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {/* Creation Event */}
                   <div className="flex gap-3">
                     <div className="flex flex-col items-center">
