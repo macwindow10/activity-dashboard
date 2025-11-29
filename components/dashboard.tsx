@@ -21,8 +21,33 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
   useEffect(() => {
     if (activities.length === 0) {
       setChartData([])
+      setStatusData([])
       return
     }
+
+    // Group activities by date
+    const dateMap = new Map<string, number>()
+    activities.forEach((activity) => {
+      const date = format(new Date(activity.createdAt), "MMM dd")
+      dateMap.set(date, (dateMap.get(date) || 0) + 1)
+    })
+
+    // Convert to sorted array
+    const dates = Array.from(dateMap.entries())
+      .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+      .map(([date, count]) => ({ date, count }))
+
+    setChartData(dates)
+
+    // Group activities by status
+    const statusMap = new Map<string, number>()
+    activities.forEach((activity) => {
+      const status = activity.status || "Unknown"
+      statusMap.set(status, (statusMap.get(status) || 0) + 1)
+    })
+
+    const statuses = Array.from(statusMap.entries()).map(([status, count]) => ({ status, count }))
+    setStatusData(statuses)
   }, [activities])
 
   const chartConfig = {

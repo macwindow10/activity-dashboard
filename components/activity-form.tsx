@@ -104,9 +104,9 @@ export function ActivityForm({ onSuccess, compact = false }: ActivityFormProps) 
 
   return (
     <Card className="w-full">
-      <CardHeader className="bg-[var(--primary)]">
-        <CardTitle className="text-[var(--primary-foreground)]">Create New Activity</CardTitle>
-        <CardDescription className="text-[var(--primary-foreground)]">Add a new activity to your dashboard</CardDescription>
+      <CardHeader className="">
+        <CardTitle className="text-slate-700">Create New Activity</CardTitle>
+        <CardDescription className="text-slate-600">Add a new activity to your dashboard</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className={compact ? "space-y-3" : "space-y-6"}>
@@ -122,7 +122,7 @@ export function ActivityForm({ onSuccess, compact = false }: ActivityFormProps) 
             />
           </div>
 
-          <div className={`grid grid-cols-2 ${compact ? 'gap-2' : 'gap-4'}`}>
+          <div className={`grid grid-cols-3 ${compact ? 'gap-2' : 'gap-4'}`}>
             <div className={compact ? 'space-y-1' : 'space-y-2'}>
               <Label htmlFor="type">Activity Type</Label>
               <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
@@ -154,129 +154,133 @@ export function ActivityForm({ onSuccess, compact = false }: ActivityFormProps) 
                 </SelectContent>
               </Select>
             </div>
+
+            <div className={compact ? 'space-y-1' : 'space-y-2'}>
+              <Label htmlFor="dueDate">Due Date</Label>
+              <Input
+                id="dueDate"
+                type="datetime-local"
+                value={formData.dueDate}
+                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                required
+                className={compact ? 'h-8' : ''}
+              />
+            </div>
           </div>
 
-          <div className={compact ? 'space-y-1' : 'space-y-2'}>
-            <Label htmlFor="dueDate">Due Date</Label>
-            <Input
-              id="dueDate"
-              type="datetime-local"
-              value={formData.dueDate}
-              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-              required
-              className={compact ? 'h-8' : ''}
-            />
+          <div className={`grid grid-cols-2 ${compact ? 'gap-2' : 'gap-4'}`}>
+            <div className={compact ? 'space-y-1' : 'space-y-2'}>
+              <Label>Projects</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={`w-full justify-start text-left bg-transparent ${compact ? 'py-1' : ''}`}>
+                    {selectedProjects.length > 0 ? `${selectedProjects.length} selected` : "Select projects..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search projects..." />
+                    <CommandList>
+                      <CommandEmpty>No project found.</CommandEmpty>
+                      <CommandGroup>
+                        {projects.map((project) => (
+                          <CommandItem
+                            key={project.id}
+                            value={project.id}
+                            onSelect={() => {
+                              setSelectedProjects((prev) =>
+                                prev.includes(project.id) ? prev.filter((p) => p !== project.id) : [...prev, project.id],
+                              )
+                            }}
+                          >
+                            <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
+                              {selectedProjects.includes(project.id) && <div className="h-2 w-2 bg-primary" />}
+                            </div>
+                            {project.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {selectedProjects.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedProjects.map((projectId) => {
+                    const project = projects.find((p) => p.id === projectId)
+                    return (
+                      <Badge key={projectId} variant="secondary" className="flex items-center gap-1">
+                        {project?.name}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => setSelectedProjects((prev) => prev.filter((p) => p !== projectId))}
+                        />
+                      </Badge>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className={compact ? 'space-y-1' : 'space-y-2'}>
+              <Label>Assign to Persons</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={`w-full justify-start text-left bg-transparent ${compact ? 'py-1' : ''}`}>
+                    {selectedPersons.length > 0 ? `${selectedPersons.length} selected` : "Select persons..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search persons..." />
+                    <CommandList>
+                      <CommandEmpty>No person found.</CommandEmpty>
+                      <CommandGroup>
+                        {users.map((user) => (
+                          <CommandItem
+                            key={user.id}
+                            value={user.id}
+                            onSelect={() => {
+                              setSelectedPersons((prev) =>
+                                prev.includes(user.id) ? prev.filter((p) => p !== user.id) : [...prev, user.id],
+                              )
+                            }}
+                          >
+                            <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
+                              {selectedPersons.includes(user.id) && <div className="h-2 w-2 bg-primary" />}
+                            </div>
+                            {user.name || user.email}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {selectedPersons.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedPersons.map((userId) => {
+                    const user = users.find((u) => u.id === userId)
+                    return (
+                      <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                        {user?.name || user?.email}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => setSelectedPersons((prev) => prev.filter((p) => p !== userId))}
+                        />
+                      </Badge>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className={compact ? 'space-y-1' : 'space-y-2'}>
-            <Label>Projects</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={`w-full justify-start text-left bg-transparent ${compact ? 'py-1' : ''}`}>
-                  {selectedProjects.length > 0 ? `${selectedProjects.length} selected` : "Select projects..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search projects..." />
-                  <CommandList>
-                    <CommandEmpty>No project found.</CommandEmpty>
-                    <CommandGroup>
-                      {projects.map((project) => (
-                        <CommandItem
-                          key={project.id}
-                          value={project.id}
-                          onSelect={() => {
-                            setSelectedProjects((prev) =>
-                              prev.includes(project.id) ? prev.filter((p) => p !== project.id) : [...prev, project.id],
-                            )
-                          }}
-                        >
-                          <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
-                            {selectedProjects.includes(project.id) && <div className="h-2 w-2 bg-primary" />}
-                          </div>
-                          {project.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedProjects.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedProjects.map((projectId) => {
-                  const project = projects.find((p) => p.id === projectId)
-                  return (
-                    <Badge key={projectId} variant="secondary" className="flex items-center gap-1">
-                      {project?.name}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => setSelectedProjects((prev) => prev.filter((p) => p !== projectId))}
-                      />
-                    </Badge>
-                  )
-                })}
-              </div>
-            )}
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isLoading} className={`w-fit ${compact ? 'py-1' : ''}`}>
+              {isLoading ? "Creating..." : "Create Activity"}
+            </Button>
           </div>
-
-          <div className={compact ? 'space-y-1' : 'space-y-2'}>
-            <Label>Assign to Persons</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={`w-full justify-start text-left bg-transparent ${compact ? 'py-1' : ''}`}>
-                  {selectedPersons.length > 0 ? `${selectedPersons.length} selected` : "Select persons..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search persons..." />
-                  <CommandList>
-                    <CommandEmpty>No person found.</CommandEmpty>
-                    <CommandGroup>
-                      {users.map((user) => (
-                        <CommandItem
-                          key={user.id}
-                          value={user.id}
-                          onSelect={() => {
-                            setSelectedPersons((prev) =>
-                              prev.includes(user.id) ? prev.filter((p) => p !== user.id) : [...prev, user.id],
-                            )
-                          }}
-                        >
-                          <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
-                            {selectedPersons.includes(user.id) && <div className="h-2 w-2 bg-primary" />}
-                          </div>
-                          {user.name || user.email}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedPersons.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedPersons.map((userId) => {
-                  const user = users.find((u) => u.id === userId)
-                  return (
-                    <Badge key={userId} variant="secondary" className="flex items-center gap-1">
-                      {user?.name || user?.email}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => setSelectedPersons((prev) => prev.filter((p) => p !== userId))}
-                      />
-                    </Badge>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          <Button type="submit" disabled={isLoading} className={`w-full ${compact ? 'py-1' : ''}`}>
-            {isLoading ? "Creating..." : "Create Activity"}
-          </Button>
         </form>
       </CardContent>
     </Card>
