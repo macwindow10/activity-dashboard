@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import type { IActivity } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { format, startOfDay } from "date-fns"
 
@@ -15,6 +15,7 @@ interface DashboardProps {
 
 export function Dashboard({ activities, projects, users }: DashboardProps) {
   const [chartData, setChartData] = useState<Array<{ date: string; count: number }>>([])
+  const [statusData, setStatusData] = useState<Array<{ status: string; count: number }>>([])
 
   // Calculate chart data - activities by creation date
   useEffect(() => {
@@ -37,6 +38,37 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
       .map(([date, count]) => ({ date, count }))
 
     setChartData(sorted)
+  }, [activities])
+
+  // Calculate chart data - activities by status
+  useEffect(() => {
+    if (activities.length === 0) {
+      setStatusData([])
+      return
+    }
+
+    // Group activities by status
+    const statusMap = new Map<string, number>()
+
+    activities.forEach((activity) => {
+      const status = activity.status || "Unknown"
+      statusMap.set(status, (statusMap.get(status) || 0) + 1)
+    })
+
+    // Convert to array with consistent order
+    const statusOrder = ["Created", "InProgress", "Completed"]
+    const sorted = statusOrder
+      .filter((status) => statusMap.has(status))
+      .map((status) => ({ status, count: statusMap.get(status) || 0 }))
+
+    // Add any statuses not in the predefined order
+    Array.from(statusMap.entries()).forEach(([status, count]) => {
+      if (!statusOrder.includes(status)) {
+        sorted.push({ status, count })
+      }
+    })
+
+    setStatusData(sorted)
   }, [activities])
 
   const chartConfig = {
@@ -81,14 +113,14 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
         </Card>
       </div>
 
-      {/* Chart */}
+      {/* Line Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Activities Over Time</CardTitle>
+          <CardTitle>Activities Created Over Time</CardTitle>
         </CardHeader>
         <CardContent>
           {chartData.length > 0 ? (
-            <ChartContainer config={chartConfig}>
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
@@ -96,24 +128,59 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
                   tick={{ fontSize: 12 }}
                   angle={-45}
                   textAnchor="end"
-                  height={80}
+                  height={60}
                 />
                 <YAxis 
                   tick={{ fontSize: 12 }}
                 />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <Tooltip />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="var(--color-count)"
+                  stroke="#3b82f6"
                   strokeWidth={2}
-                  dot={{ fill: "var(--color-count)", r: 4 }}
+                  dot={{ fill: "#3b82f6", r: 4 }}
                   activeDot={{ r: 6 }}
                   name="Activity Count"
                 />
               </LineChart>
-            </ChartContainer>
+            </ResponsiveContainer>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No activity data available</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Bar Chart - Activities by Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Activities by Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {statusData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={statusData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="status" 
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip />
+                <Legend />
+                <Bar
+                  dataKey="count"
+                  fill="#3b82f6"
+                  name="Activity Count"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">No activity data available</p>

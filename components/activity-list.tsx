@@ -213,7 +213,10 @@ export function ActivityList({ activities, onSuccess = () => {} }: { activities:
   }
 
   return (
-    <div className="flex gap-4 h-full">
+    <div className="flex gap-4 h-full flex-col">
+      <div className="text-sm text-muted-foreground font-medium">
+        Total Activities: <span className="font-bold text-foreground">{activities.length}</span>
+      </div>
       <div className="flex-1 space-y-3 overflow-y-auto">
         {activities.map((activity) => (
           <Card key={activity.id} className="hover:shadow-md transition-shadow">
