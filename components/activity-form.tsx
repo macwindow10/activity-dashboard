@@ -104,9 +104,9 @@ export function ActivityForm({ onSuccess, compact = false }: ActivityFormProps) 
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Create New Activity</CardTitle>
-        <CardDescription>Add a new activity to your dashboard</CardDescription>
+      <CardHeader className="bg-[var(--primary)]">
+        <CardTitle className="text-[var(--primary-foreground)]">Create New Activity</CardTitle>
+        <CardDescription className="text-[var(--primary-foreground)]">Add a new activity to your dashboard</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className={compact ? "space-y-3" : "space-y-6"}>

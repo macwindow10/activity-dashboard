@@ -23,52 +23,6 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
       setChartData([])
       return
     }
-
-    // Group activities by created date
-    const dateMap = new Map<string, number>()
-
-    activities.forEach((activity) => {
-      const date = format(new Date(activity.createdAt), "MMM dd, yyyy")
-      dateMap.set(date, (dateMap.get(date) || 0) + 1)
-    })
-
-    // Sort by date and convert to array
-    const sorted = Array.from(dateMap.entries())
-      .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
-      .map(([date, count]) => ({ date, count }))
-
-    setChartData(sorted)
-  }, [activities])
-
-  // Calculate chart data - activities by status
-  useEffect(() => {
-    if (activities.length === 0) {
-      setStatusData([])
-      return
-    }
-
-    // Group activities by status
-    const statusMap = new Map<string, number>()
-
-    activities.forEach((activity) => {
-      const status = activity.status || "Unknown"
-      statusMap.set(status, (statusMap.get(status) || 0) + 1)
-    })
-
-    // Convert to array with consistent order
-    const statusOrder = ["Created", "InProgress", "Completed"]
-    const sorted = statusOrder
-      .filter((status) => statusMap.has(status))
-      .map((status) => ({ status, count: statusMap.get(status) || 0 }))
-
-    // Add any statuses not in the predefined order
-    Array.from(statusMap.entries()).forEach(([status, count]) => {
-      if (!statusOrder.includes(status)) {
-        sorted.push({ status, count })
-      }
-    })
-
-    setStatusData(sorted)
   }, [activities])
 
   const chartConfig = {

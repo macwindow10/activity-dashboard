@@ -132,7 +132,7 @@ export default function MainPage() {
       <div className="w-full max-w-[1800px] space-y-4">
         <div className="flex items-center justify-between mb-6">
           <div className="text-center flex-1">
-            <h1 className="text-4xl font-bold text-slate-900 mb-1">Activity Dashboard</h1>
+            <h1 className="text-4xl font-bold text-slate-600 mb-1">Activity Dashboard</h1>
             {session && (
               <p className="text-sm text-slate-600">Welcome, {session.name || session.email}</p>
             )}
@@ -140,10 +140,10 @@ export default function MainPage() {
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="gap-2 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
           >
             <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
+            
           </Button>
         </div>
 

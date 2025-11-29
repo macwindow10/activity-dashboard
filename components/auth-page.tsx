@@ -297,7 +297,7 @@ export function AuthPage() {
           </Card>
 
           <p className="text-center text-slate-600 text-sm mt-6">
-            Activity Dashboard © 2024
+            Activity Dashboard © 2025
           </p>
         </div>
       </div>

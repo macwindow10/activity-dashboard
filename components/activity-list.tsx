@@ -49,12 +49,12 @@ function getTypeColor(type: string) {
 
 function ActivityDetails({ activity, onClose }: { activity: IActivity | null; onClose: () => void }) {
   return (
-    <div className="w-full md:w-80 bg-white border-l flex flex-col h-full">
-      <div className="p-4 border-b flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Activity Details</h3>
+    <div className="w-full md:w-80 bg-white border-l flex flex-col h-full rounded-lg overflow-hidden shadow-lg">
+      <div className="p-4 border-b flex items-center justify-between bg-[var(--primary)] rounded-t-lg">
+        <h3 className="text-lg font-semibold text-[var(--primary-foreground)]">Activity Details</h3>
         {activity && (
           <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 text-[var(--primary-foreground)]" />
           </Button>
         )}
       </div>
@@ -213,129 +213,132 @@ export function ActivityList({ activities, onSuccess = () => {} }: { activities:
   }
 
   return (
-    <div className="flex gap-4 h-full flex-col">
-      <div className="text-sm text-muted-foreground font-medium">
-        Total Activities: <span className="font-bold text-foreground">{activities.length}</span>
-      </div>
-      <div className="flex-1 space-y-3 overflow-y-auto">
-        {activities.map((activity) => (
-          <Card key={activity.id} className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3 flex-1">
-                {getStatusIcon(activity.status)}
-                <div className="flex-1">
-                  <CardTitle className="text-base">{activity.description}</CardTitle>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <Badge className={getTypeColor(activity.type)}>{activity.type}</Badge>
-                    <Badge className={getStatusColor(activity.status)}>{activity.status}</Badge>
+    <div className="flex gap-4 h-full flex-row">
+      <div className="flex-1 flex flex-col">
+        <div className="text-sm text-muted-foreground font-medium">
+          Total Activities: <span className="font-bold text-foreground">{activities.length}</span>
+        </div>
+        <div className="flex-1 space-y-3 overflow-y-auto">
+          {activities.map((activity) => (
+            <Card key={activity.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    {getStatusIcon(activity.status)}
+                    <div className="flex-1">
+                      <CardTitle className="text-base">{activity.description}</CardTitle>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Badge className={getTypeColor(activity.type)}>{activity.type}</Badge>
+                        <Badge className={getStatusColor(activity.status)}>{activity.status}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2"
+                      onClick={() => setEditingActivity(activity)}
+                    >
+                      <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2"
+                      onClick={() => setStatusActivity(activity)}
+                    >
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                      Status
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2"
+                      onClick={() => setDetailsActivity(activity)}
+                    >
+                      <span className="text-sm">Details</span>
+                    </Button>
+                    {editingActivity && (
+                      <ActivityEditDialog 
+                        activity={editingActivity}
+                        open={!!editingActivity}
+                        onOpenChange={(open) => !open && setEditingActivity(null)}
+                        onSuccess={() => {
+                          setEditingActivity(null)
+                          onSuccess()
+                        }}
+                      />
+                    )}
+                    {statusActivity && (
+                      <ActivityStatusDialog 
+                        activity={statusActivity}
+                        open={!!statusActivity}
+                        onOpenChange={(open) => !open && setStatusActivity(null)}
+                        onSuccess={() => {
+                          setStatusActivity(null)
+                          onSuccess()
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 px-2"
-                  onClick={() => setEditingActivity(activity)}
-                >
-                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                  Edit
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 px-2"
-                  onClick={() => setStatusActivity(activity)}
-                >
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                  Status
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 px-2"
-                  onClick={() => setDetailsActivity(activity)}
-                >
-                  <span className="text-sm">Details</span>
-                </Button>
-                {editingActivity && (
-                  <ActivityEditDialog 
-                    activity={editingActivity}
-                    open={!!editingActivity}
-                    onOpenChange={(open) => !open && setEditingActivity(null)}
-                    onSuccess={() => {
-                      setEditingActivity(null)
-                      onSuccess()
-                    }}
-                  />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Due Date</p>
+                    <p className="font-medium">{format(new Date(activity.dueDate), "PPp")}</p>
+                  </div>
+                  {activity.completionDate && (
+                    <div>
+                      <p className="text-muted-foreground">Completed</p>
+                      <p className="font-medium">{format(new Date(activity.completionDate), "PPp")}</p>
+                    </div>
+                  )}
+                </div>
+
+                {activity.projects.length > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Projects</p>
+                    <div className="flex flex-wrap gap-1">
+                      {activity.projects.map((ap) => (
+                        <Badge key={ap.project.id} variant="outline">
+                          {ap.project.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 )}
-                {statusActivity && (
-                  <ActivityStatusDialog 
-                    activity={statusActivity}
-                    open={!!statusActivity}
-                    onOpenChange={(open) => !open && setStatusActivity(null)}
-                    onSuccess={() => {
-                      setStatusActivity(null)
-                      onSuccess()
-                    }}
-                  />
+
+                {activity.assignedPersons.length > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Assigned to</p>
+                    <div className="flex flex-wrap gap-1">
+                      {activity.assignedPersons.map((ap) => (
+                        <Badge key={ap.user.id} variant="outline">
+                          {ap.user.name || ap.user.email}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Due Date</p>
-                <p className="font-medium">{format(new Date(activity.dueDate), "PPp")}</p>
-              </div>
-              {activity.completionDate && (
-                <div>
-                  <p className="text-muted-foreground">Completed</p>
-                  <p className="font-medium">{format(new Date(activity.completionDate), "PPp")}</p>
-                </div>
-              )}
-            </div>
 
-            {activity.projects.length > 0 && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Projects</p>
-                <div className="flex flex-wrap gap-1">
-                  {activity.projects.map((ap) => (
-                    <Badge key={ap.project.id} variant="outline">
-                      {ap.project.name}
-                    </Badge>
-                  ))}
+                <div className="text-xs text-muted-foreground">
+                  Created by {activity.createdBy.name || activity.createdBy.email}
                 </div>
-              </div>
-            )}
-
-            {activity.assignedPersons.length > 0 && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Assigned to</p>
-                <div className="flex flex-wrap gap-1">
-                  {activity.assignedPersons.map((ap) => (
-                    <Badge key={ap.user.id} variant="outline">
-                      {ap.user.name || ap.user.email}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="text-xs text-muted-foreground">
-              Created by {activity.createdBy.name || activity.createdBy.email}
-            </div>
-          </CardContent>
-        </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-
-      <ActivityDetails 
-        activity={detailsActivity}
-        onClose={() => setDetailsActivity(null)}
-      />
+      <div className="w-full md:w-80 max-w-md flex-shrink-0 mt-6">
+        <ActivityDetails 
+          activity={detailsActivity}
+          onClose={() => setDetailsActivity(null)}
+        />
+      </div>
     </div>
   )
 }
