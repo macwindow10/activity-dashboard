@@ -53,7 +53,7 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
   const chartConfig = {
     count: {
       label: "Activities",
-      color: "#3b82f6",
+      color: "#64748b", // slate
     },
   }
 
@@ -117,9 +117,9 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#3b82f6"
+                  stroke="#64748b"
                   strokeWidth={2}
-                  dot={{ fill: "#3b82f6", r: 4 }}
+                  dot={{ fill: "#64748b", r: 4 }}
                   activeDot={{ r: 6 }}
                   name="Activity Count"
                 />
@@ -154,7 +154,7 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
                 <Legend />
                 <Bar
                   dataKey="count"
-                  fill="#3b82f6"
+                  fill="#64748b"
                   name="Activity Count"
                   radius={[8, 8, 0, 0]}
                 />

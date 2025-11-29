@@ -333,7 +333,7 @@ export function ActivityList({ activities, onSuccess = () => {} }: { activities:
           ))}
         </div>
       </div>
-      <div className="w-full md:w-80 max-w-md flex-shrink-0 mt-6">
+      <div className="w-full md:w-80 max-w-md flex-shrink-0 mt-6 sticky top-6 h-fit" style={{ zIndex: 50 }}>
         <ActivityDetails 
           activity={detailsActivity}
           onClose={() => setDetailsActivity(null)}
