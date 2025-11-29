@@ -285,13 +285,7 @@ export function AuthPage() {
                       {isSignup ? "Sign In" : "Sign Up"}
                     </button>
                   </p>
-                </div>
-
-                <div className="p-3 bg-slate-100 rounded-lg text-center border border-slate-200">
-                  <p className="text-xs text-slate-600">
-                    Demo credentials: test@example.com / password123
-                  </p>
-                </div>
+                </div>                
               </div>
             </CardContent>
           </Card>

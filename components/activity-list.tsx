@@ -189,7 +189,7 @@ function ActivityDetails({ activity, onClose }: { activity: IActivity | null; on
           </ScrollArea>
       ) : (
         <div className="flex-1 p-4 flex items-center justify-center text-muted-foreground">
-          <p>Select an activity to view details</p>
+          <p className="text-sm font-medium text-foreground text-center w-full">Select an activity to view details</p>
         </div>
       )}
     </div>

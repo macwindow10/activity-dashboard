@@ -29,6 +29,7 @@ interface FilterState {
   projectIds: string[]
   personIds: string[]
   status: string
+  type?: string
 }
 
 export function ActivityFilters({
@@ -45,8 +46,10 @@ export function ActivityFilters({
     dateTo: "",
     projectIds: [],
     personIds: [],
-    status: "all", // Updated default value to be a non-empty string
+    status: "all",
+    type: "all",
   })
+  const [noProject, setNoProject] = useState(false)
 
   const handleFilter = () => {
     onFilter(filters)
@@ -59,6 +62,7 @@ export function ActivityFilters({
       projectIds: [],
       personIds: [],
       status: "all",
+      type: "all",
     }
     setFilters(emptyFilters)
     onFilter(emptyFilters)
@@ -88,180 +92,201 @@ export function ActivityFilters({
   }, [])
 
   return (
-    <Card className="border-0 shadow-sm w-full md:w-[640px] max-w-[640px] mx-auto">
+    <Card className="border-0 shadow-sm w-full mx-auto">
       <CardContent className="p-4">
         <div className="space-y-3">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="dateFrom" className="text-xs font-medium text-muted-foreground">From</Label>
-              <Input
-                id="dateFrom"
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="h-8 text-sm"
-              />
-            </div>
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="dateTo" className="text-xs font-medium text-muted-foreground">To</Label>
-              <Input
-                id="dateTo"
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                className="h-8 text-sm"
-              />
-            </div>
-            <div className="flex-1 space-y-1">
-              <Label htmlFor="status" className="text-xs font-medium text-muted-foreground">Status</Label>
-              <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="Created">Created</SelectItem>
-                  <SelectItem value="InProgress">In Progress</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs font-medium text-muted-foreground">Projects</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left bg-transparent h-8 text-sm">
-                  {filters.projectIds.length > 0 ? `${filters.projectIds.length} selected` : "Filter by projects..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search projects..." />
-                  <CommandList>
-                    <CommandEmpty>No project found.</CommandEmpty>
-                    <CommandGroup>
-                      {projects.map((project) => (
-                        <CommandItem
-                          key={project.id}
-                          value={project.id}
-                          onSelect={() => {
-                            setFilters((prev) => ({
-                              ...prev,
-                              projectIds: prev.projectIds.includes(project.id)
-                                ? prev.projectIds.filter((p) => p !== project.id)
-                                : [...prev.projectIds, project.id],
-                            }))
-                          }}
-                        >
-                          <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
-                            {filters.projectIds.includes(project.id) && <div className="h-2 w-2 bg-primary" />}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-row gap-3 flex-wrap">
+                      <div className="flex flex-col space-y-1 min-w-[120px]">
+                        <Label htmlFor="dateFrom" className="text-xs font-medium text-muted-foreground">From</Label>
+                        <Input
+                          id="dateFrom"
+                          type="date"
+                          value={filters.dateFrom}
+                          onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="flex flex-col space-y-1 min-w-[120px]">
+                        <Label htmlFor="dateTo" className="text-xs font-medium text-muted-foreground">To</Label>
+                        <Input
+                          id="dateTo"
+                          type="date"
+                          value={filters.dateTo}
+                          onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="flex flex-col space-y-1 min-w-[120px]">
+                        <Label htmlFor="status" className="text-xs font-medium text-muted-foreground">Status</Label>
+                        <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="All statuses" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All statuses</SelectItem>
+                            <SelectItem value="Created">Created</SelectItem>
+                            <SelectItem value="InProgress">In Progress</SelectItem>
+                            <SelectItem value="Completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col space-y-1 min-w-[120px]">
+                        <Label htmlFor="type" className="text-xs font-medium text-muted-foreground">Type</Label>
+                        <Select value={filters.type} onValueChange={(value) => setFilters({ ...filters, type: value })}>
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="All types" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All types</SelectItem>
+                            <SelectItem value="ProjectTask">Project Task</SelectItem>
+                            <SelectItem value="RoutineWork">Routine Work</SelectItem>
+                            <SelectItem value="AttendMeeting">Attend Meeting</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col space-y-1 min-w-[180px]">
+                        <Label className="text-xs font-medium text-muted-foreground">Projects</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left bg-transparent h-8 text-sm">
+                              {filters.projectIds.length > 0 ? `${filters.projectIds.length} selected` : "Filter by projects..."}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search projects..." />
+                              <CommandList>
+                                <CommandEmpty>No project found.</CommandEmpty>
+                                <CommandGroup>
+                                  {projects.map((project) => (
+                                    <CommandItem
+                                      key={project.id}
+                                      value={project.id}
+                                      onSelect={() => {
+                                        setFilters((prev) => ({
+                                          ...prev,
+                                          projectIds: prev.projectIds.includes(project.id)
+                                            ? prev.projectIds.filter((p) => p !== project.id)
+                                            : [...prev.projectIds, project.id],
+                                        }))
+                                      }}
+                                    >
+                                      <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
+                                        {filters.projectIds.includes(project.id) && <div className="h-2 w-2 bg-primary" />}
+                                      </div>
+                                      {project.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        {filters.projectIds.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {filters.projectIds.map((projectId) => {
+                              const project = projects.find((p) => p.id === projectId)
+                              return (
+                                <Badge key={projectId} variant="secondary" className="flex items-center gap-1">
+                                  {project?.name}
+                                  <X
+                                    className="h-3 w-3 cursor-pointer"
+                                    onClick={() =>
+                                      setFilters((prev) => ({
+                                        ...prev,
+                                        projectIds: prev.projectIds.filter((p) => p !== projectId),
+                                      }))
+                                    }
+                                  />
+                                </Badge>
+                              )
+                            })}
                           </div>
-                          {project.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {filters.projectIds.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {filters.projectIds.map((projectId) => {
-                  const project = projects.find((p) => p.id === projectId)
-                  return (
-                    <Badge key={projectId} variant="secondary" className="flex items-center gap-1">
-                      {project?.name}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            projectIds: prev.projectIds.filter((p) => p !== projectId),
-                          }))
-                        }
-                      />
-                    </Badge>
-                  )
-                })}
-              </div>
-            )}
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-medium text-muted-foreground">Team Members</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left bg-transparent h-8 text-sm">
-                  {filters.personIds.length > 0 ? `${filters.personIds.length} selected` : "Filter by persons..."}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput placeholder="Search persons..." />
-                  <CommandList>
-                    <CommandEmpty>No person found.</CommandEmpty>
-                    <CommandGroup>
-                      {users.map((user) => (
-                        <CommandItem
-                          key={user.id}
-                          value={user.id}
-                          onSelect={() => {
-                            setFilters((prev) => ({
-                              ...prev,
-                              personIds: prev.personIds.includes(user.id)
-                                ? prev.personIds.filter((p) => p !== user.id)
-                                : [...prev.personIds, user.id],
-                            }))
-                          }}
-                        >
-                          <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
-                            {filters.personIds.includes(user.id) && <div className="h-2 w-2 bg-primary" />}
+                        )}
+                      </div>
+                      <div className="flex flex-col space-y-1 min-w-[180px]">
+                        <Label className="text-xs font-medium text-muted-foreground">Team Members</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left bg-transparent h-8 text-sm">
+                              {filters.personIds.length > 0 ? `${filters.personIds.length} selected` : "Filter by persons..."}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput placeholder="Search persons..." />
+                              <CommandList>
+                                <CommandEmpty>No person found.</CommandEmpty>
+                                <CommandGroup>
+                                  {users.map((user) => (
+                                    <CommandItem
+                                      key={user.id}
+                                      value={user.id}
+                                      onSelect={() => {
+                                        setFilters((prev) => ({
+                                          ...prev,
+                                          personIds: prev.personIds.includes(user.id)
+                                            ? prev.personIds.filter((p) => p !== user.id)
+                                            : [...prev.personIds, user.id],
+                                        }))
+                                      }}
+                                    >
+                                      <div className="mr-2 h-4 w-4 border border-primary rounded flex items-center justify-center">
+                                        {filters.personIds.includes(user.id) && <div className="h-2 w-2 bg-primary" />}
+                                      </div>
+                                      {user.name || user.email}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        {filters.personIds.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {filters.personIds.map((userId) => {
+                              const user = users.find((u) => u.id === userId)
+                              return (
+                                <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                                  {user?.name || user?.email}
+                                  <X
+                                    className="h-3 w-3 cursor-pointer"
+                                    onClick={() =>
+                                      setFilters((prev) => ({
+                                        ...prev,
+                                        personIds: prev.personIds.filter((p) => p !== userId),
+                                      }))
+                                    }
+                                  />
+                                </Badge>
+                              )
+                            })}
                           </div>
-                          {user.name || user.email}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {filters.personIds.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {filters.personIds.map((userId) => {
-                  const user = users.find((u) => u.id === userId)
-                  return (
-                    <Badge key={userId} variant="secondary" className="flex items-center gap-1">
-                      {user?.name || user?.email}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            personIds: prev.personIds.filter((p) => p !== userId),
-                          }))
-                        }
-                      />
-                    </Badge>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-          </div>
-
-          <div className="flex justify-between pt-1">
-            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={handleReset}>
-              Clear all
-            </Button>
-            <Button size="sm" className="h-8 text-xs" onClick={handleFilter}>
-              Apply
-            </Button>
-          </div>
-        </div>
-      </CardContent>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 min-w-[250px]">
+                        <input
+                          type="checkbox"
+                          id="noProject"
+                          checked={noProject}
+                          onChange={e => setNoProject(e.target.checked)}
+                          className="w-4 h-4"
+                        />
+                        <Label htmlFor="noProject" className="text-xs font-medium text-muted-foreground cursor-pointer">Activities not linked to any project</Label>
+                      </div>
+                    </div>
+                    <div className="flex flex-row gap-4 items-center pt-2 justify-end">
+                      <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={handleReset}>
+                        Clear all
+                      </Button>
+                      <Button size="sm" className="h-8 text-xs" onClick={handleFilter}>
+                        Apply
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+        </CardContent>
     </Card>
   )
 }

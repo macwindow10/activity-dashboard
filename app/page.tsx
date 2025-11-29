@@ -80,6 +80,7 @@ export default function MainPage() {
     projectIds: string[]
     personIds: string[]
     status: string
+    type?: string
   }) => {
     let filtered = [...activities]
 
@@ -104,6 +105,10 @@ export default function MainPage() {
 
     if (filters.status && filters.status !== "all") {
       filtered = filtered.filter((a) => a.status === filters.status)
+    }
+
+    if (filters.type && filters.type !== "all") {
+      filtered = filtered.filter((a) => a.type === filters.type)
     }
 
     setFilteredActivities(filtered)

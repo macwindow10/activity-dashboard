@@ -103,7 +103,7 @@ export function ActivityForm({ onSuccess, compact = false }: ActivityFormProps) 
   }
 
   return (
-    <Card className="w-full">
+    <Card className={compact ? "w-full max-w-md mx-auto" : "w-full"}>
       <CardHeader className="">
         <CardTitle className="text-slate-700">Create New Activity</CardTitle>
         <CardDescription className="text-slate-600">Add a new activity to your dashboard</CardDescription>
