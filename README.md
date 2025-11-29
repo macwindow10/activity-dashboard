@@ -2,20 +2,26 @@
 
 A comprehensive web app for managing and tracking activities, projects, and teams! 🗂️✨
 
+[![Login](screenshots/login.png)](screenshots/login.png)
+*Login: Secure authentication for your team.*
+
 [![Dashboard](screenshots/dashboard.png)](screenshots/dashboard.png)
 *Dashboard view: See all activities at a glance.*
-
-[![Create Activity](screenshots/createactivity.png)](screenshots/createactivity.png)
-*Create Activity: Add new tasks with details and tags.*
-
-[![Activities List](screenshots/activities.png)](screenshots/activities.png)
-*Activities List: Filter, edit, and manage activities.*
 
 [![Projects](screenshots/projects.png)](screenshots/projects.png)
 *Projects: Tag and organize activities by project.*
 
-[![Login](screenshots/login.png)](screenshots/login.png)
-*Login: Secure authentication for your team.*
+[![Activities List](screenshots/activities.png)](screenshots/activities.png)
+*Activities List: Filter, edit, and manage activities.*
+
+[![Create Activity](screenshots/createactivity.png)](screenshots/createactivity.png)
+*Create Activity: Add new tasks with details and tags.*
+
+
+
+
+
+
 
 ## 🛠️ Tech Stack
 
