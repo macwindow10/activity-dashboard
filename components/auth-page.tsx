@@ -100,7 +100,7 @@ export function AuthPage() {
                 </div>
               </div>
               <CardTitle className="text-2xl text-slate-900">
-                {isSignup ? "Create Account" : "Welcome Back"}
+                {isSignup ? "Create Account" : "Welcome! Please Login"}
               </CardTitle>
               <CardDescription className="text-slate-600">
                 {isSignup

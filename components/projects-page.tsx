@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react"
 import type { IActivity } from "@/lib/types"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ActivityList } from "@/components/activity-list"
+import { Input } from "@/components/ui/input"
 
 interface Project {
   id: string
@@ -24,6 +25,13 @@ interface ProjectsPageProps {
 
 export function ProjectsPage({ projects, activities, users }: ProjectsPageProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(projects?.[0]?.id ?? null)
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const sortedAndFilteredProjects = useMemo(() => {
+    return projects
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  }, [projects, searchQuery])
 
   const projectActivities = useMemo(() => {
     if (!selectedProjectId) return []
@@ -58,11 +66,17 @@ export function ProjectsPage({ projects, activities, users }: ProjectsPageProps)
       <div className="grid grid-cols-[18rem_1fr] gap-4">
         <aside className="bg-white rounded-lg border p-3 h-[600px] overflow-auto">
           <h3 className="text-sm font-medium text-slate-600 mb-2">Projects</h3>
+          <Input
+            placeholder="Search projects..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mb-3 text-sm"
+          />
           <div className="space-y-1">
-            {projects.length === 0 && (
+            {sortedAndFilteredProjects.length === 0 && (
               <div className="text-sm text-muted-foreground">No projects</div>
             )}
-            {projects.map((p) => (
+            {sortedAndFilteredProjects.map((p) => (
               <button
                 key={p.id}
                 onClick={() => setSelectedProjectId(p.id)}
