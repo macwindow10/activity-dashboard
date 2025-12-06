@@ -35,7 +35,20 @@ export function ProjectsPage({ projects, activities, users }: ProjectsPageProps)
 
   const projectActivities = useMemo(() => {
     if (!selectedProjectId) return []
-    return activities.filter((a) => a.projects.some((p) => p.project.id === selectedProjectId))
+    return activities
+      .filter((a) => a.projects.some((p) => p.project.id === selectedProjectId))
+      .sort((a, b) => {
+        // Sort by status first
+        const statusOrder = { "Created": 0, "InProgress": 1, "Completed": 2 }
+        const statusA = statusOrder[a.status as keyof typeof statusOrder] ?? 3
+        const statusB = statusOrder[b.status as keyof typeof statusOrder] ?? 3
+        if (statusA !== statusB) return statusA - statusB
+        
+        // Then sort by createdAt
+        const dateA = new Date(a.createdAt).getTime()
+        const dateB = new Date(b.createdAt).getTime()
+        return dateB - dateA
+      })
   }, [activities, selectedProjectId])
 
   const teamMembers = useMemo(() => {

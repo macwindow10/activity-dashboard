@@ -34,6 +34,20 @@ export default function MainPage() {
   const { logout, session } = useAuth()
   const router = useRouter()
 
+  const sortActivities = (arr: IActivity[]) => {
+    return [...arr].sort((a, b) => {
+      const statusOrder = { "Created": 0, "InProgress": 1, "Completed": 2 }
+        const statusA = statusOrder[a.status as keyof typeof statusOrder] ?? 3
+        const statusB = statusOrder[b.status as keyof typeof statusOrder] ?? 3
+        if (statusA !== statusB) return statusA - statusB
+        
+        // Then sort by createdAt
+        const dateA = new Date(a.createdAt).getTime()
+        const dateB = new Date(b.createdAt).getTime()
+        return dateB - dateA
+    })
+  }
+
   const handleLogout = async () => {
     try {
       await logout()
@@ -59,8 +73,10 @@ export default function MainPage() {
         const projectsData = await projectsRes.json()
         const usersData = await usersRes.json()
 
-        setActivities(activitiesData)
-        setFilteredActivities(activitiesData)
+        const sorted = sortActivities(activitiesData)
+
+        setActivities(sorted)
+        setFilteredActivities(sorted)
         setProjects(projectsData)
         setUsers(usersData)
       } catch (error) {
@@ -129,8 +145,9 @@ export default function MainPage() {
     try {
       const response = await fetch("/api/activities")
       const data = await response.json()
-      setActivities(data)
-      setFilteredActivities(data)
+      const sorted = sortActivities(data)
+      setActivities(sorted)
+      setFilteredActivities(sorted)
     } catch (error) {
       console.error("Error refreshing activities:", error)
     }

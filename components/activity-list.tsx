@@ -326,7 +326,8 @@ export function ActivityList({ activities, onSuccess = () => {} }: { activities:
                 )}
 
                 <div className="text-xs text-muted-foreground">
-                  Created by {activity.createdBy.name || activity.createdBy.email}
+                  <div>Created by: {activity.createdBy.name || activity.createdBy.email}</div>
+                  <div>Created on: {format(new Date(activity.createdAt), "PPp")}</div>
                 </div>
               </CardContent>
             </Card>
