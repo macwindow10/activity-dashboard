@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import type { IActivity } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { format, startOfDay } from "date-fns"
 
@@ -18,6 +18,8 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
   const [statusData, setStatusData] = useState<Array<{ status: string; count: number }>>([])
   const [projectData, setProjectData] = useState<Array<{ name: string; count: number }>>([])
   const [userActivityData, setUserActivityData] = useState<Array<{ name: string; count: number }>>([])
+  const [userCompletionData, setUserCompletionData] = useState<Array<{ name: string; completionRate: number; total: number; completed: number }>>([])
+  const [workloadDistribution, setWorkloadDistribution] = useState<Array<{ name: string; value: number; type: string }>>([])
 
   // Calculate chart data - activities by creation date
   useEffect(() => {
@@ -26,6 +28,8 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
       setStatusData([])
       setProjectData([])
       setUserActivityData([])
+      setUserCompletionData([])
+      setWorkloadDistribution([])
       return
     }
 
@@ -80,6 +84,49 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
 
     const userActivities = Array.from(userActivityMap.entries()).map(([name, count]) => ({ name, count }))
     setUserActivityData(userActivities)
+
+    // Calculate completion rates by assigned persons
+    const userCompletionMap = new Map<string, { total: number; completed: number }>()
+    activities.forEach((activity) => {
+      activity.assignedPersons.forEach((ap) => {
+        const userName = ap.user.name || ap.user.email
+        const existing = userCompletionMap.get(userName) || { total: 0, completed: 0 }
+        existing.total += 1
+        if (activity.status === "Completed") {
+          existing.completed += 1
+        }
+        userCompletionMap.set(userName, existing)
+      })
+    })
+
+    const completionRates = Array.from(userCompletionMap.entries())
+      .map(([name, data]) => ({
+        name,
+        completionRate: Math.round((data.completed / data.total) * 100),
+        total: data.total,
+        completed: data.completed,
+      }))
+      .sort((a, b) => b.completionRate - a.completionRate)
+
+    setUserCompletionData(completionRates)
+
+    // Create workload distribution data (Heavy vs Under-utilized)
+    const workloadData: Array<{ name: string; value: number; type: string }> = []
+    const allCounts = Array.from(userActivityMap.values())
+    if (allCounts.length > 0) {
+      const avgCount = allCounts.reduce((a, b) => a + b, 0) / allCounts.length
+      const threshold = avgCount * 0.5 // 50% of average
+
+      userActivities.forEach((user) => {
+        if (user.count > avgCount) {
+          workloadData.push({ name: user.name, value: user.count, type: "Heavy" })
+        } else if (user.count < threshold) {
+          workloadData.push({ name: user.name, value: user.count, type: "Under-utilized" })
+        }
+      })
+    }
+
+    setWorkloadDistribution(workloadData)
   }, [activities, projects])
 
   const chartConfig = {
@@ -149,9 +196,9 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#64748b"
+                  stroke="#957C62"
                   strokeWidth={2}
-                  dot={{ fill: "#64748b", r: 4 }}
+                  dot={{ fill: "#957C62", r: 4 }}
                   activeDot={{ r: 6 }}
                   name="Activity Count"
                 />
@@ -186,7 +233,7 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
                 <Legend />
                 <Bar
                   dataKey="count"
-                  fill="#14b8a6"
+                  fill="#73AF6F"
                   name="Activity Count"
                   radius={[8, 8, 0, 0]}
                 />
@@ -224,7 +271,7 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
                 <Legend />
                 <Bar
                   dataKey="count"
-                  fill="#155e75" // dark ocean color
+                  fill="#BBCB64" // dark ocean color
                   name="Activity Count"
                   radius={[8, 8, 0, 0]}
                 />
@@ -238,85 +285,144 @@ export function Dashboard({ activities, projects, users }: DashboardProps) {
         </CardContent>
       </Card>
 
-      {/* Bar Chart - Team Members with Heavy Activity Load */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Heavy Activity Load (Top 5)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {userActivityData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart 
-                data={userActivityData
-                  .sort((a, b) => b.count - a.count)
-                  .slice(0, 5)}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip />
-                <Legend />
-                <Bar
-                  dataKey="count"
-                  fill="#ef4444"
-                  name="Activity Count"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No user data available</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Bar Chart - Team Members with Heavy Activity Load and Under-Utilized */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Heavy Load */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Heavy Activity Load (Top 5)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {userActivityData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart 
+                  data={userActivityData
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5)}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="count"
+                    fill="#FFE1AF"
+                    name="Activity Count"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No user data available</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Bar Chart - Under-Utilized Team Members */}
+        {/* Under-Utilized */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Under-Utilized Team Members (Bottom 5)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {userActivityData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart 
+                  data={userActivityData
+                    .sort((a, b) => a.count - b.count)
+                    .slice(0, 5)}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="count"
+                    fill="#B77466"
+                    name="Activity Count"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No user data available</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Best Completion Rates Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Under-Utilized Team Members (Bottom 5)</CardTitle>
+          <CardTitle>Team Member Completion Rates</CardTitle>
+          <p className="text-sm text-muted-foreground">Who has the best activity completion percentage</p>
         </CardHeader>
         <CardContent>
-          {userActivityData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart 
-                data={userActivityData
-                  .sort((a, b) => a.count - b.count)
-                  .slice(0, 5)}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip />
-                <Legend />
-                <Bar
-                  dataKey="count"
-                  fill="#f59e0b"
-                  name="Activity Count"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+          {userCompletionData.length > 0 ? (
+            <div className="space-y-4">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart 
+                  data={userCompletionData.slice(0, 8)}
+                  layout="vertical"
+                  margin={{ left: 150, right: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number" 
+                    domain={[0, 100]}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category"
+                    width={140}
+                    tick={{ fontSize: 11 }}
+                  />
+                  <Tooltip 
+                    formatter={(value: number) => `${value}%`}
+                    labelFormatter={() => "Completion Rate"}
+                  />
+                  <Bar
+                    dataKey="completionRate"
+                    fill="#10b981"
+                    name="Completion %"
+                    radius={[0, 8, 8, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                {userCompletionData.slice(0, 6).map((item) => (
+                  <div key={item.name} className="p-2 bg-green-50 rounded">
+                    <p className="font-medium text-green-900">{item.name}</p>
+                    <p className="text-green-600">{item.completed}/{item.total} completed ({item.completionRate}%)</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No user data available</p>
+              <p className="text-muted-foreground">No completion data available</p>
             </div>
           )}
         </CardContent>
