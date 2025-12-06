@@ -37,12 +37,16 @@ export function ActivityFilters({
   projects,
   users,
   onFilter,
+  initialFilters,
+  onClose,
 }: {
   projects: Project[]
   users: User[]
   onFilter: (filters: FilterState) => void
+  initialFilters?: FilterState
+  onClose?: () => void
 }) {
-  const [filters, setFilters] = useState<FilterState>({
+  const defaultFilters: FilterState = {
     dateFrom: "",
     dateTo: "",
     projectIds: [],
@@ -50,24 +54,23 @@ export function ActivityFilters({
     status: "all",
     type: "all",
     noProject: false,
-  })
+  }
+
+  const [filters, setFilters] = useState<FilterState>(initialFilters ?? defaultFilters)
+
+  useEffect(() => {
+    setFilters(initialFilters ?? defaultFilters)
+  }, [initialFilters])
 
   const handleFilter = () => {
     onFilter(filters)
+    if (onClose) onClose()
   }
 
   const handleReset = () => {
-    const emptyFilters: FilterState = {
-      dateFrom: "",
-      dateTo: "",
-      projectIds: [],
-      personIds: [],
-      status: "all",
-      type: "all",
-      noProject: false,
-    }
-    setFilters(emptyFilters)
-    onFilter(emptyFilters)
+    setFilters(defaultFilters)
+    onFilter(defaultFilters)
+    if (onClose) onClose()
   }
 
   // Add global styles for the date picker

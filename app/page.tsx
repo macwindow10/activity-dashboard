@@ -10,6 +10,8 @@ import ProjectsPage from "@/components/projects-page"
 import type { IActivity } from "@/lib/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Search } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { toast } from "sonner"
 import { LogOut } from "lucide-react"
@@ -25,9 +27,29 @@ interface User {
   email: string
 }
 
+type FilterState = {
+  dateFrom: string
+  dateTo: string
+  projectIds: string[]
+  personIds: string[]
+  status: string
+  type?: string
+  noProject?: boolean
+}
+
 export default function MainPage() {
   const [activities, setActivities] = useState<IActivity[]>([])
   const [filteredActivities, setFilteredActivities] = useState<IActivity[]>([])
+  const [currentFilters, setCurrentFilters] = useState<FilterState>({
+    dateFrom: "",
+    dateTo: "",
+    projectIds: [] as string[],
+    personIds: [] as string[],
+    status: "all",
+    type: "all",
+    noProject: false,
+  })
+  const [searchOpen, setSearchOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -90,15 +112,9 @@ export default function MainPage() {
     fetchData()
   }, [])
 
-  const handleFilter = (filters: {
-    dateFrom: string
-    dateTo: string
-    projectIds: string[]
-    personIds: string[]
-    status: string
-    type?: string
-    noProject?: boolean
-  }) => {
+  const handleFilter = (filters: FilterState) => {
+    console.log("Applying filters (page.tsx) :", filters)
+    setCurrentFilters(filters)
     let filtered = [...activities]
 
     if (filters.dateFrom) {
@@ -147,7 +163,44 @@ export default function MainPage() {
       const data = await response.json()
       const sorted = sortActivities(data)
       setActivities(sorted)
-      setFilteredActivities(sorted)
+      // Re-apply current filters so the filter is global/persistent
+      if (currentFilters) {
+        // reuse handleFilter logic by applying filters against the newly fetched activities
+        let filtered = [...sorted]
+
+        if (currentFilters.dateFrom) {
+          const fromDate = new Date(currentFilters.dateFrom)
+          filtered = filtered.filter((a) => new Date(a.dueDate) >= fromDate)
+        }
+
+        if (currentFilters.dateTo) {
+          const toDate = new Date(currentFilters.dateTo)
+          toDate.setHours(23, 59, 59, 999)
+          filtered = filtered.filter((a) => new Date(a.dueDate) <= toDate)
+        }
+
+        if (currentFilters.noProject) {
+          filtered = filtered.filter((a) => a.projects.length === 0)
+        } else if (currentFilters.projectIds.length > 0) {
+          filtered = filtered.filter((a) => a.projects.some((p) => currentFilters.projectIds.includes(p.project.id)))
+        }
+
+        if (currentFilters.personIds.length > 0) {
+          filtered = filtered.filter((a) => a.assignedPersons.some((p) => currentFilters.personIds.includes(p.user.id)))
+        }
+
+        if (currentFilters.status && currentFilters.status !== "all") {
+          filtered = filtered.filter((a) => a.status === currentFilters.status)
+        }
+
+        if (currentFilters.type && currentFilters.type !== "all") {
+          filtered = filtered.filter((a) => a.type === currentFilters.type)
+        }
+
+        setFilteredActivities(filtered)
+      } else {
+        setFilteredActivities(sorted)
+      }
     } catch (error) {
       console.error("Error refreshing activities:", error)
     }
@@ -163,14 +216,32 @@ export default function MainPage() {
               <p className="text-sm text-slate-600">Welcome, {session.name || session.email}</p>
             )}
           </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <LogOut className="w-4 h-4" />
-            
-          </Button>
+          <div className="flex items-center gap-2">
+            <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button aria-label="Open search" variant="outline" className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                  <Search className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[640px] p-0">
+                <ActivityFilters
+                  projects={projects}
+                  users={users}
+                  onFilter={handleFilter}
+                  initialFilters={currentFilters}
+                  onClose={() => setSearchOpen(false)}
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="gap-2 border-slate-300 text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-2 w-full">
@@ -184,11 +255,11 @@ export default function MainPage() {
           </div>
 
           <TabsContent value="dashboard" className="space-y-3 w-full">
-            <Dashboard activities={activities} projects={projects} users={users} />
+            <Dashboard activities={filteredActivities} projects={projects} users={users} />
           </TabsContent>
 
           <TabsContent value="activities" className="space-y-3 w-full">
-            <ActivityFilters projects={projects} users={users} onFilter={handleFilter} />
+            {/* Search panel moved to header — filters are global via the search popover */}
             {isLoading ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">Loading activities...</p>
@@ -205,7 +276,7 @@ export default function MainPage() {
           </TabsContent>
 
           <TabsContent value="projects" className="space-y-3 w-full">
-            <ProjectsPage projects={projects} activities={activities} users={users} />
+            <ProjectsPage projects={projects} activities={filteredActivities} users={users} />
           </TabsContent>
         </Tabs>
       </div>
